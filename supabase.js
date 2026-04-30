@@ -97,16 +97,43 @@ const SupabaseClient = (() => {
 
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
-    if (!code) return { data: null, error: null };
+    const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const accessToken = hashParams.get('access_token');
+    const refreshToken = hashParams.get('refresh_token');
+    const errorCode = url.searchParams.get('error_code') || hashParams.get('error_code');
+    const errorDescription = url.searchParams.get('error_description') || hashParams.get('error_description');
 
-    const { data, error } = await client.auth.exchangeCodeForSession(code);
-    if (!error) {
-      _currentUserId = data?.session?.user?.id || null;
-      url.searchParams.delete('code');
-      url.searchParams.delete('state');
-      window.history.replaceState({}, document.title, url.toString());
+    if (errorCode || errorDescription) {
+      return {
+        data: null,
+        error: { message: errorDescription || errorCode || 'OAuth redirect failed' },
+      };
     }
-    return { data, error };
+
+    if (code) {
+      const { data, error } = await client.auth.exchangeCodeForSession(code);
+      if (!error) {
+        _currentUserId = data?.session?.user?.id || null;
+        url.searchParams.delete('code');
+        url.searchParams.delete('state');
+        window.history.replaceState({}, document.title, url.toString());
+      }
+      return { data, error };
+    }
+
+    if (accessToken && refreshToken) {
+      const { data, error } = await client.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      if (!error) {
+        _currentUserId = data?.session?.user?.id || null;
+        window.history.replaceState({}, document.title, url.origin + url.pathname);
+      }
+      return { data, error };
+    }
+
+    return { data: null, error: null };
   }
 
   async function ping() {
