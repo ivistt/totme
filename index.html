@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Martian+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="tasks.css" />
 </head>
 <body>
 
@@ -77,6 +78,10 @@
           <img src="logo.png" alt="ОБЛІК" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
           <span class="logo-text" style="display:none">ОБЛІК</span>
         </div>
+        <nav class="main-nav">
+          <button class="nav-btn nav-active" id="nav-projects" type="button">Проєкти</button>
+          <button class="nav-btn" id="nav-tasks" type="button">Задачі</button>
+        </nav>
         <div class="month-picker">
           <button class="btn-icon" id="btn-month-prev" title="Попередній місяць" aria-label="Попередній місяць">
             <i data-lucide="chevron-left"></i>
@@ -107,6 +112,7 @@
       </div>
     </header>
 
+    <div id="main-screen">
     <!-- MAIN TABLE -->
     <main class="main">
       <div class="table-wrap">
@@ -160,6 +166,8 @@
         </div>
       </div>
     </main>
+
+    </div><!-- /main-screen -->
 
     <!-- MODAL: PROJECT FORM -->
     <div class="overlay" id="overlay-project" hidden>
@@ -424,6 +432,64 @@
       </div>
     </div>
 
+  <!-- ═══ TASKS SCREEN ══════════════════════════════════════════════════ -->
+  <div id="tasks-screen" hidden>
+
+    <!-- TASKS HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <img src="logo.png" alt="ОБЛІК" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <span class="logo-text" style="display:none">ОБЛІК</span>
+        </div>
+        <span class="tasks-screen-title">Задачі</span>
+      </div>
+      <div class="header-right">
+        <button class="avatar-btn" id="btn-profile-tasks" type="button" aria-label="Профіль">
+          <span class="avatar-initial" id="avatar-initial-tasks">?</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="tasks-main">
+
+      <!-- PRIORITY -->
+      <section class="tasks-section">
+        <div class="tasks-section-head">
+          <div class="tasks-section-title">
+            <span class="tasks-section-label">Пріоритетні</span>
+            <span class="tasks-badge tasks-badge-priority" id="tasks-count-priority" hidden>0</span>
+          </div>
+        </div>
+        <div class="tasks-list" id="tasks-list-priority"></div>
+        <div class="task-add-row">
+          <input type="text" class="task-input" id="task-input-priority" placeholder="Додати пріоритетну задачу..." maxlength="200" />
+          <button class="task-add-btn task-add-btn-priority" id="task-add-priority" aria-label="Додати">
+            <i data-lucide="plus"></i>
+          </button>
+        </div>
+      </section>
+
+      <!-- NORMAL -->
+      <section class="tasks-section">
+        <div class="tasks-section-head">
+          <div class="tasks-section-title">
+            <span class="tasks-section-label">Звичайні</span>
+            <span class="tasks-badge" id="tasks-count-normal" hidden>0</span>
+          </div>
+        </div>
+        <div class="tasks-list" id="tasks-list-normal"></div>
+        <div class="task-add-row">
+          <input type="text" class="task-input" id="task-input-normal" placeholder="Додати звичайну задачу..." maxlength="200" />
+          <button class="task-add-btn" id="task-add-normal" aria-label="Додати">
+            <i data-lucide="plus"></i>
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
     <!-- TOAST -->
     <div class="toast" id="toast"></div>
 
@@ -436,5 +502,6 @@
   <script src="auth.js"></script>
   <script src="modal.js"></script>
   <script src="app.js"></script>
+  <script src="tasks.js"></script>
 </body>
 </html>

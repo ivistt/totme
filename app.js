@@ -52,6 +52,7 @@ const App = (() => {
       if (session) {
         _userEmail = session.user.email || '';
         window.ProfileModal?.setUser?.(_userEmail);
+        updateAvatars(_userEmail);
         Auth.hide();
         await reload();
       } else {
@@ -135,6 +136,14 @@ const App = (() => {
 
   function getUserEmail() {
     return _userEmail;
+  }
+
+  function updateAvatars(email) {
+    const initial = email ? email[0].toUpperCase() : '?';
+    ['avatar-initial', 'avatar-initial-tasks'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = initial;
+    });
   }
 
   function refreshIcons() {
@@ -525,5 +534,14 @@ const App = (() => {
   return { init, reload, recalcAndRender, updateProjectTask, saveProjectPayments, getCurrentPeriod, getAllProjects, getCurrentMonthProjects, getUserEmail, getProjectPayments, refreshIcons };
 })();
 
-document.addEventListener('DOMContentLoaded', () => App.init());
+document.addEventListener('DOMContentLoaded', () => {
+  App.init();
+  const btnProfileTasks = document.getElementById('btn-profile-tasks');
+  if (btnProfileTasks) {
+    btnProfileTasks.addEventListener('click', () => {
+      document.getElementById('overlay-profile').removeAttribute('hidden');
+      if (window.ProfileModal?.open) window.ProfileModal.open();
+    });
+  }
+});
 window.App = App;

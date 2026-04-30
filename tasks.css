@@ -1,0 +1,258 @@
+/* ── NAVIGATION ─────────────────────────────────────── */
+.main-nav {
+  display: flex;
+  gap: 2px;
+  background: var(--bg3);
+  border-radius: var(--radius);
+  padding: 3px;
+}
+
+.nav-btn {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  border-radius: calc(var(--radius) - 1px);
+  padding: 5px 14px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover { color: var(--text); }
+
+.nav-btn.nav-active {
+  background: var(--bg4);
+  color: var(--text);
+}
+
+/* ── TASKS SCREEN ───────────────────────────────────── */
+.tasks-screen-title {
+  font-family: var(--head);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted2);
+  letter-spacing: 0.06em;
+}
+
+#tasks-screen[hidden] { display: none !important; }
+
+.tasks-main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+/* ── SECTION ─────────────────────────────────────────── */
+.tasks-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tasks-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.25rem;
+}
+
+.tasks-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tasks-section-label {
+  font-family: var(--head);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.tasks-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  background: var(--bg4);
+  color: var(--muted2);
+  border-radius: 10px;
+  padding: 1px 7px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.tasks-badge-priority {
+  background: rgba(200, 245, 66, 0.12);
+  color: var(--accent);
+}
+
+/* ── TASK LIST ───────────────────────────────────────── */
+.tasks-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 8px;
+}
+
+.tasks-empty {
+  font-size: 12px;
+  color: var(--muted);
+  padding: 0.9rem 0 0.6rem;
+  opacity: 0.6;
+}
+
+/* ── TASK ITEM ───────────────────────────────────────── */
+.task-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  transition: opacity 0.2s;
+  user-select: none;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item:hover:not(.task-done) .task-bullet {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.task-bullet {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--muted);
+  background: transparent;
+  margin-top: 2px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.task-text {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.5;
+  word-break: break-word;
+  transition: color 0.2s, text-decoration 0.2s;
+}
+
+.task-timer {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+/* Done state */
+.task-done {
+  cursor: default;
+  pointer-events: none;
+}
+
+.task-done .task-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.task-done .task-bullet {
+  background: var(--muted);
+  border-color: var(--muted);
+  opacity: 0.4;
+}
+
+/* ── ADD ROW ─────────────────────────────────────────── */
+.task-add-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.65rem;
+}
+
+.task-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--line2);
+  border-radius: 0;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 0.4rem 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.task-input::placeholder {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+.task-input:focus {
+  border-color: var(--accent);
+}
+
+.task-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: transparent;
+  border: 1px solid var(--line2);
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.task-add-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(200, 245, 66, 0.06);
+}
+
+.task-add-btn-priority:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.task-add-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── MOBILE ──────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .tasks-main {
+    padding: 1.25rem 1rem 5rem;
+    gap: 2rem;
+  }
+
+  .task-text {
+    font-size: 13px;
+  }
+
+  .nav-btn {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
