@@ -6,6 +6,8 @@ const Auth = (() => {
   function show() {
     document.getElementById('auth-screen').removeAttribute('hidden');
     document.getElementById('app-screen').setAttribute('hidden', '');
+    document.getElementById('auth-confirm-msg').setAttribute('hidden', '');
+    document.getElementById('auth-form-body').removeAttribute('hidden');
     setMode('login');
     clearError();
   }
@@ -19,14 +21,21 @@ const Auth = (() => {
     _mode = mode;
     const isLogin = mode === 'login';
 
-    document.getElementById('auth-title').textContent     = isLogin ? 'Вхід' : 'Реєстрація';
-    document.getElementById('auth-btn-submit').textContent = isLogin ? 'Увійти' : 'Зареєструватись';
+    document.getElementById('auth-title').textContent = isLogin
+      ? 'Welcome back! Glad to see you again.'
+      : 'Create your account and get started.';
+    document.getElementById('auth-subtitle').textContent = isLogin
+      ? 'Увійдіть у свій акаунт, щоб повернутись до обліку проєктів.'
+      : 'Зареєструйтесь, щоб зберігати проєкти, години та оплати в одному місці.';
+    document.getElementById('auth-btn-submit').textContent = isLogin ? 'Login' : 'Register';
     document.getElementById('auth-switch-text').textContent = isLogin
-      ? 'Немає акаунту? '
-      : 'Вже є акаунт? ';
+      ? "Don't have an account? "
+      : 'Already have an account? ';
     document.getElementById('auth-switch-link').textContent = isLogin
-      ? 'Зареєструватись'
-      : 'Увійти';
+      ? 'Register Now'
+      : 'Login';
+    document.getElementById('auth-confirm-msg').setAttribute('hidden', '');
+    document.getElementById('auth-form-body').removeAttribute('hidden');
 
     clearError();
     document.getElementById('auth-email').focus();
@@ -48,8 +57,8 @@ const Auth = (() => {
     const btn = document.getElementById('auth-btn-submit');
     btn.disabled = on;
     btn.textContent = on
-      ? (_mode === 'login' ? 'Входимо...' : 'Реєструємось...')
-      : (_mode === 'login' ? 'Увійти' : 'Зареєструватись');
+      ? (_mode === 'login' ? 'Logging in...' : 'Creating account...')
+      : (_mode === 'login' ? 'Login' : 'Register');
   }
 
   async function submit() {
@@ -83,9 +92,37 @@ const Auth = (() => {
     }
   }
 
+  async function signInWithGoogle() {
+    clearError();
+    const button = document.getElementById('auth-btn-google');
+    button.disabled = true;
+    button.querySelector('span:last-child').textContent = 'Redirecting...';
+
+    const { error } = await SupabaseClient.signInWithGoogle();
+
+    if (error) {
+      button.disabled = false;
+      button.querySelector('span:last-child').textContent = 'Continue with Google';
+      showError(friendlyError(error.message));
+    }
+  }
+
   function showConfirmMessage() {
     document.getElementById('auth-confirm-msg').removeAttribute('hidden');
     document.getElementById('auth-form-body').setAttribute('hidden', '');
+  }
+
+  function togglePasswordVisibility() {
+    const input = document.getElementById('auth-password');
+    const toggle = document.getElementById('auth-password-toggle');
+    if (!input || !toggle) return;
+
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    toggle.setAttribute('aria-label', isHidden ? 'Сховати пароль' : 'Показати пароль');
+    toggle.innerHTML = `<i data-lucide="${isHidden ? 'eye-off' : 'eye'}"></i>`;
+    if (window.App?.refreshIcons) window.App.refreshIcons();
+    else if (window.lucide) lucide.createIcons();
   }
 
   function friendlyError(msg) {
@@ -94,18 +131,18 @@ const Auth = (() => {
     if (msg.includes('User already registered'))     return 'Цей email вже зареєстровано';
     if (msg.includes('Password should be'))          return 'Пароль занадто простий';
     if (msg.includes('Unable to validate'))          return 'Невірний email або пароль';
+    if (msg.includes('provider is not enabled'))     return 'Google login ще не увімкнений у Supabase';
     return msg;
   }
 
   // ── WIRE UP ──────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('auth-btn-submit').addEventListener('click', submit);
-    document.getElementById('auth-switch-link').addEventListener('click', () => {
+    document.getElementById('auth-btn-google').addEventListener('click', signInWithGoogle);
+    document.getElementById('auth-password-toggle').addEventListener('click', togglePasswordVisibility);
+    document.getElementById('auth-switch-link').addEventListener('click', e => {
+      e.preventDefault();
       setMode(_mode === 'login' ? 'register' : 'login');
-    });
-    document.getElementById('btn-logout').addEventListener('click', async () => {
-      await SupabaseClient.signOut();
-      // onAuthStateChange покаже екран логіну
     });
 
     // Enter у полях форми

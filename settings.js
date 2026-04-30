@@ -1,58 +1,109 @@
-// settings.js — тільки курс НБУ (Supabase налаштовано через Worker)
+// settings.js — інлайн-редагування курсу НБУ в шапці
 
 const Settings = (() => {
-  const KEY_RATE = 'nbu_rate';
+  let _rate = 43.0;
+  let _editing = false;
 
   function load() {
-    return {
-      rate: parseFloat(localStorage.getItem(KEY_RATE)) || 43.0,
-    };
+    return { rate: _rate };
   }
 
   function save({ rate }) {
-    if (rate) localStorage.setItem(KEY_RATE, rate);
+    if (rate) _rate = rate;
   }
 
   function getRate() {
-    return parseFloat(localStorage.getItem(KEY_RATE)) || 43.0;
+    return _rate;
   }
 
-  function openModal() {
-    const s = load();
-    document.getElementById('setting-rate').value = s.rate;
-    document.getElementById('settings-status').className = 'settings-status';
-    document.getElementById('settings-status').textContent = '';
-    document.getElementById('overlay-settings').removeAttribute('hidden');
+  function updateDisplay(rate = getRate()) {
+    const trigger = document.getElementById('rate-trigger');
+    const valueEl = document.getElementById('rate-display');
+    if (!trigger || !valueEl) return;
+
+    trigger.classList.remove('is-editing');
+    trigger.removeAttribute('data-state');
+    valueEl.textContent = rate.toFixed(2);
+    _editing = false;
   }
 
-  async function saveFromModal() {
-    const rate = parseFloat(document.getElementById('setting-rate').value);
-    if (!rate || rate <= 0) { showStatus('err', 'Вкажіть коректний курс'); return; }
+  function startInlineEdit() {
+    if (_editing) return;
+
+    const trigger = document.getElementById('rate-trigger');
+    const valueEl = document.getElementById('rate-display');
+    if (!trigger || !valueEl) return;
+
+    _editing = true;
+    trigger.classList.add('is-editing');
+    trigger.dataset.state = 'editing';
+
+    const currentRate = getRate();
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.id = 'rate-input';
+    input.className = 'rate-input';
+    input.min = '1';
+    input.step = '0.01';
+    input.value = currentRate.toFixed(2);
+    input.setAttribute('aria-label', 'Курс НБУ');
+
+    valueEl.replaceWith(input);
+    input.focus();
+    input.select();
+
+    input.addEventListener('click', e => e.stopPropagation());
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitInlineEdit();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cancelInlineEdit();
+      }
+    });
+    input.addEventListener('blur', commitInlineEdit);
+  }
+
+  function commitInlineEdit() {
+    const input = document.getElementById('rate-input');
+    if (!input) return;
+
+    const rate = parseFloat(input.value);
+    if (!rate || rate <= 0) {
+      showToast('Вкажіть коректний курс НБУ');
+      input.focus();
+      input.select();
+      return;
+    }
+
+    const valueEl = document.createElement('span');
+    valueEl.className = 'rate-value';
+    valueEl.id = 'rate-display';
+    input.replaceWith(valueEl);
 
     save({ rate });
-    showStatus('ok', 'Збережено ✓');
-
-    document.getElementById('rate-display').textContent = rate.toFixed(2);
+    updateDisplay(rate);
     if (window.App) App.recalcAndRender();
-
-    setTimeout(() => {
-      document.getElementById('overlay-settings').setAttribute('hidden', '');
-    }, 700);
+    showToast('Курс оновлено');
   }
 
-  function showStatus(type, msg) {
-    const el = document.getElementById('settings-status');
-    el.className = 'settings-status' + (type ? ' ' + type : '');
-    el.textContent = msg;
+  function cancelInlineEdit() {
+    const input = document.getElementById('rate-input');
+    if (!input) return;
+
+    const valueEl = document.createElement('span');
+    valueEl.className = 'rate-value';
+    valueEl.id = 'rate-display';
+    input.replaceWith(valueEl);
+    updateDisplay();
   }
 
-  return { load, save, getRate, openModal, saveFromModal };
+  return { load, save, getRate, updateDisplay, startInlineEdit };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {
   const s = Settings.load();
-  document.getElementById('rate-display').textContent = s.rate.toFixed(2);
-
-  document.getElementById('btn-settings').addEventListener('click', Settings.openModal);
-  document.getElementById('btn-save-settings').addEventListener('click', Settings.saveFromModal);
+  Settings.updateDisplay(s.rate);
+  document.getElementById('rate-trigger').addEventListener('click', Settings.startInlineEdit);
 });

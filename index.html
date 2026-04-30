@@ -17,23 +17,36 @@
         <img src="logo.png" alt="ОБЛІК" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
         <span class="auth-logo-text" style="display:none">ОБЛІК</span>
       </div>
-      <div class="auth-title" id="auth-title">Вхід</div>
+      <div class="auth-head">
+        <div class="auth-title" id="auth-title">Welcome back!</div>
+        <div class="auth-subtitle" id="auth-subtitle">Glad to see you again. Увійдіть у свій акаунт.</div>
+      </div>
 
       <div id="auth-form-body">
         <div class="auth-fields">
-          <div class="field">
-            <label>Email</label>
-            <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" />
+          <div class="auth-field">
+            <input type="email" id="auth-email" placeholder="Enter your email" autocomplete="email" />
           </div>
-          <div class="field">
-            <label>Пароль</label>
-            <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" />
+          <div class="auth-field auth-field-password">
+            <input type="password" id="auth-password" placeholder="Enter your password" autocomplete="current-password" />
+            <button type="button" class="auth-password-toggle" id="auth-password-toggle" aria-label="Показати пароль">
+              <i data-lucide="eye"></i>
+            </button>
           </div>
         </div>
 
         <div class="auth-error" id="auth-error" hidden></div>
 
         <button class="btn-primary auth-btn" id="auth-btn-submit">Увійти</button>
+
+        <button class="auth-social-btn" id="auth-btn-google" type="button">
+          <span class="auth-social-icon">G</span>
+          <span>Continue with Google</span>
+        </button>
+
+        <div class="auth-divider">
+          <span>Secure email access</span>
+        </div>
 
         <div class="auth-switch">
           <span id="auth-switch-text">Немає акаунту? </span>
@@ -42,7 +55,9 @@
       </div>
 
       <div class="auth-confirm" id="auth-confirm-msg" hidden>
-        <div class="auth-confirm-icon">✉</div>
+        <div class="auth-confirm-icon" aria-hidden="true">
+          <i data-lucide="mail-check"></i>
+        </div>
         <div class="auth-confirm-text">
           Лист підтвердження відправлено на вашу пошту.<br/>
           Перейдіть за посиланням у листі, потім увійдіть.
@@ -62,20 +77,33 @@
           <img src="logo.png" alt="ОБЛІК" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
           <span class="logo-text" style="display:none">ОБЛІК</span>
         </div>
-        <button class="btn-icon" id="btn-month-prev" title="Попередній місяць">‹</button>
-<span class="header-month" id="header-month"></span>
-<button class="btn-icon" id="btn-month-next" title="Наступний місяць">›</button>
+        <div class="month-picker">
+          <button class="btn-icon" id="btn-month-prev" title="Попередній місяць" aria-label="Попередній місяць">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <span class="header-month" id="header-month"></span>
+          <button class="btn-icon" id="btn-month-next" title="Наступний місяць" aria-label="Наступний місяць">
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
       </div>
       <div class="header-right">
-        <span class="user-email" id="user-email"></span>
-        <span class="rate-display">
+        <button class="rate-display" id="rate-trigger" type="button" aria-label="Редагувати курс НБУ">
           <span class="rate-label">НБУ</span>
           <span class="rate-value" id="rate-display">—</span>
           <span class="rate-label">₴/$</span>
-        </span>
-        <button class="btn-icon" id="btn-settings" title="Налаштування">⚙</button>
-        <button class="btn-logout" id="btn-logout" title="Вийти">↩</button>
-        <button class="btn-primary" id="btn-add">+ проєкт</button>
+        </button>
+        <button class="timer-btn" id="btn-timer" type="button" aria-label="Запустити секундомір">
+          <span class="timer-btn-icon" id="timer-icon"><i data-lucide="play"></i></span>
+          <span class="timer-btn-text" id="timer-display">00:00:00</span>
+        </button>
+        <button class="btn-primary" id="btn-add">
+          <i data-lucide="plus"></i>
+          <span>проєкт</span>
+        </button>
+        <button class="avatar-btn" id="btn-profile" type="button" aria-label="Профіль">
+          <span class="avatar-initial" id="avatar-initial">?</span>
+        </button>
       </div>
     </header>
 
@@ -90,8 +118,9 @@
               <th class="col-num">Годин</th>
               <th class="col-num">Фікс $</th>
               <th class="col-num">Разом $</th>
-              <th class="col-num">Разом ₴</th>
-              <th class="col-status">Статус</th>
+              <th class="col-num col-uah">Разом ₴</th>
+              <th class="col-num">Оплачено $</th>
+              <th class="col-num">Залишок $</th>
               <th class="col-actions"></th>
             </tr>
           </thead>
@@ -100,12 +129,16 @@
             <tr id="totals-row">
               <td colspan="4" class="totals-label">Разом</td>
               <td class="col-num totals-val" id="total-usd">—</td>
-              <td class="col-num totals-val" id="total-uah">—</td>
-              <td colspan="2"></td>
+              <td class="col-num col-uah totals-val" id="total-uah">—</td>
+              <td class="col-num totals-val" id="total-paid-usd">—</td>
+              <td class="col-num totals-val" id="total-balance-usd">—</td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
       </div>
+
+      <div class="mobile-projects" id="mobile-projects"></div>
 
       <!-- SUMMARY CARDS -->
       <div class="summary-cards" id="summary-cards">
@@ -118,7 +151,7 @@
           <div class="card-val" id="sum-uah">—</div>
         </div>
         <div class="card card-warn">
-          <div class="card-label">Не оплачено $</div>
+          <div class="card-label">Залишок $</div>
           <div class="card-val" id="sum-unpaid">—</div>
         </div>
         <div class="card card-ok">
@@ -133,7 +166,9 @@
       <div class="modal modal-sm">
         <div class="modal-header">
           <div class="modal-title" id="project-modal-title">Новий проєкт</div>
-          <button class="btn-close" data-close="overlay-project">✕</button>
+          <button class="btn-close" data-close="overlay-project" aria-label="Закрити">
+            <i data-lucide="x"></i>
+          </button>
         </div>
         <div class="modal-body">
           <input type="hidden" id="edit-id" />
@@ -147,20 +182,13 @@
               <input type="number" id="field-rate" placeholder="20" min="0" step="0.01" />
             </div>
             <div class="field">
-              <label>Годин</label>
-              <input type="number" id="field-hours" placeholder="0" min="0" step="0.25" />
+              <label>Годин <span class="hint">(рахується з щоденника)</span></label>
+              <input type="number" id="field-hours" placeholder="0" min="0" step="0.25" readonly />
             </div>
           </div>
           <div class="field">
             <label>Фіксована ціна $ <span class="hint">(якщо є — замінює ставку×год)</span></label>
             <input type="number" id="field-static" placeholder="0" min="0" step="0.01" />
-          </div>
-          <div class="field">
-            <label>Статус оплати</label>
-            <select id="field-paid">
-              <option value="false">Не оплачено</option>
-              <option value="true">Оплачено</option>
-            </select>
           </div>
         </div>
         <div class="modal-footer">
@@ -180,10 +208,12 @@
           </div>
           <div class="modal-header-right">
             <button class="btn-copy" id="btn-copy-journal">
-              <span class="copy-icon">⎘</span>
+              <i data-lucide="copy"></i>
               <span class="copy-text">копіювати</span>
             </button>
-            <button class="btn-close" data-close="overlay-journal">✕</button>
+            <button class="btn-close" data-close="overlay-journal" aria-label="Закрити">
+              <i data-lucide="x"></i>
+            </button>
           </div>
         </div>
         <div class="modal-body" id="journal-body"></div>
@@ -194,24 +224,202 @@
       </div>
     </div>
 
-    <!-- MODAL: SETTINGS -->
-    <div class="overlay" id="overlay-settings" hidden>
+    <!-- MODAL: PROJECT COMMENT -->
+    <div class="overlay" id="overlay-task" hidden>
       <div class="modal modal-sm">
         <div class="modal-header">
-          <div class="modal-title">Налаштування</div>
-          <button class="btn-close" data-close="overlay-settings">✕</button>
+          <div>
+            <div class="modal-title" id="task-modal-title">Коментар до проєкту</div>
+            <div class="modal-sub" id="task-modal-sub">—</div>
+          </div>
+          <button class="btn-close" data-close="overlay-task" aria-label="Закрити">
+            <i data-lucide="x"></i>
+          </button>
         </div>
         <div class="modal-body">
           <div class="field">
-            <label>Курс НБУ (₴ за $1)</label>
-            <input type="number" id="setting-rate" placeholder="43.5" min="1" step="0.01" />
+            <label>Коментар</label>
+            <textarea id="task-modal-input" class="project-task-input task-modal-input" placeholder="Що зараз робимо по проєкту?"></textarea>
           </div>
-
-          <div class="settings-status" id="settings-status"></div>
         </div>
         <div class="modal-footer">
-          <button class="btn-ghost" data-close="overlay-settings">Скасувати</button>
-          <button class="btn-primary" id="btn-save-settings">Зберегти</button>
+          <button class="btn-ghost" data-close="overlay-task">Скасувати</button>
+          <button class="btn-primary" id="btn-save-task">Зберегти</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PAYMENTS -->
+    <div class="overlay" id="overlay-payments" hidden>
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Оплати по проєкту</div>
+            <div class="modal-sub" id="payments-modal-sub">—</div>
+          </div>
+          <button class="btn-close" data-close="overlay-payments" aria-label="Закрити">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="payments-list" id="payments-list"></div>
+          <button class="btn-ghost btn-add-payment" id="btn-add-payment" type="button">
+            <i data-lucide="plus"></i>
+            <span>Додати оплату</span>
+          </button>
+          <div class="payments-total">
+            <span class="payments-total-label">Разом оплачено</span>
+            <span class="payments-total-value" id="payments-total-value">$0</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-ghost" data-close="overlay-payments">Скасувати</button>
+          <button class="btn-primary" id="btn-save-payments">Зберегти</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: QUICK ENTRY -->
+    <div class="overlay" id="overlay-quick-entry" hidden>
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Записати за сьогодні</div>
+            <div class="modal-sub" id="quick-entry-sub">—</div>
+          </div>
+          <button class="btn-close" data-close="overlay-quick-entry" aria-label="Закрити">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Години</label>
+            <input type="number" id="quick-entry-hours" placeholder="0" min="0" step="0.25" />
+          </div>
+          <div class="field">
+            <label>Коментар</label>
+            <textarea id="quick-entry-comment" class="project-task-input task-modal-input" placeholder="Що зроблено сьогодні?"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-ghost" data-close="overlay-quick-entry">Скасувати</button>
+          <button class="btn-primary" id="btn-save-quick-entry">Додати</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: PROFILE -->
+    <div class="overlay" id="overlay-profile" hidden>
+      <div class="modal modal-xl profile-modal">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Профіль</div>
+            <div class="modal-sub">Огляд дня по проєктах, задачах, годинах та сумі</div>
+          </div>
+          <div class="modal-header-right">
+            <button class="btn-close" data-close="overlay-profile" aria-label="Закрити">
+              <i data-lucide="x"></i>
+            </button>
+          </div>
+        </div>
+        <div class="modal-body profile-body">
+          <section class="profile-sidebar">
+            <div class="profile-account">
+              <div class="profile-avatar" id="profile-avatar">?</div>
+              <div class="profile-account-meta">
+                <div class="profile-label">Email</div>
+                <div class="profile-email" id="profile-email">—</div>
+              </div>
+            </div>
+            <button class="btn-ghost profile-logout" id="btn-profile-logout">
+              <i data-lucide="log-out"></i>
+              <span>Вийти</span>
+            </button>
+            <div class="profile-day-card">
+              <div class="profile-label">Обраний день</div>
+              <div class="profile-day-title" id="profile-day-title">Оберіть день</div>
+              <div class="profile-day-stats">
+                <div class="profile-stat">
+                  <span class="profile-stat-label">Години</span>
+                  <span class="profile-stat-value" id="profile-day-hours">—</span>
+                </div>
+                <div class="profile-stat">
+                  <span class="profile-stat-label">$</span>
+                  <span class="profile-stat-value" id="profile-day-usd">—</span>
+                </div>
+                <div class="profile-stat">
+                  <span class="profile-stat-label">₴</span>
+                  <span class="profile-stat-value" id="profile-day-uah">—</span>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="profile-main">
+            <div class="profile-calendar-head">
+              <button class="btn-icon" id="profile-month-prev" type="button" aria-label="Попередній місяць">
+                <i data-lucide="chevron-left"></i>
+              </button>
+              <div class="profile-month-title" id="profile-month-title">—</div>
+              <button class="btn-icon" id="profile-month-next" type="button" aria-label="Наступний місяць">
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+            <div class="profile-layout">
+              <div class="calendar-panel">
+                <div class="calendar-grid calendar-weekdays" id="profile-weekdays"></div>
+                <div class="calendar-grid" id="profile-calendar-grid"></div>
+              </div>
+              <div class="profile-day-details">
+                <div class="profile-day-details-head">
+                  <div class="profile-label">Записи дня</div>
+                  <div class="profile-day-count" id="profile-day-count">0 записів</div>
+                </div>
+                <div class="profile-day-list" id="profile-day-list">
+                  <div class="profile-empty">Оберіть день у календарі, щоб подивитись деталізацію.</div>
+                </div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: TIME ALLOCATION -->
+    <div class="overlay" id="overlay-timer" hidden>
+      <div class="modal modal-lg timer-modal">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title">Розподіл часу</div>
+            <div class="modal-sub" id="timer-modal-sub">—</div>
+          </div>
+          <button class="btn-close" data-close="overlay-timer" aria-label="Закрити">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="modal-body timer-body">
+          <div class="timer-summary">
+            <div class="timer-summary-card">
+              <div class="profile-label">Натикано</div>
+              <div class="timer-total" id="timer-total">00:00:00</div>
+            </div>
+            <div class="timer-summary-card">
+              <div class="profile-label">До запису</div>
+              <div class="timer-total-sm" id="timer-total-hours">0 год</div>
+            </div>
+          </div>
+          <div class="timer-allocator">
+            <div class="timer-track-wrap">
+              <div class="timer-track" id="timer-track"></div>
+            </div>
+            <div class="timer-rows" id="timer-rows"></div>
+          </div>
+          <div class="profile-empty" id="timer-empty" hidden>
+            У поточному місяці немає проєктів для розподілу часу.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-ghost" data-close="overlay-timer">Скасувати</button>
+          <button class="btn-primary" id="btn-save-timer">Записати час</button>
         </div>
       </div>
     </div>
@@ -221,6 +429,7 @@
 
   </div><!-- /app-screen -->
 
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="supabase.js"></script>
   <script src="settings.js"></script>

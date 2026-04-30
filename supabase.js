@@ -61,6 +61,17 @@ const SupabaseClient = (() => {
     return await client.auth.signUp({ email, password });
   }
 
+  async function signInWithGoogle() {
+    const client = get();
+    if (!client) return { error: { message: 'Worker не налаштовано' } };
+    return await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname,
+      },
+    });
+  }
+
   async function signOut() {
     const client = get();
     if (!client) return;
@@ -93,5 +104,5 @@ const SupabaseClient = (() => {
   // Ініціалізуємо одразу при завантаженні скрипта
   init();
 
-  return { init, get, userId, userIdSync, onAuthChange, signIn, signUp, signOut, getSession, ping };
+  return { init, get, userId, userIdSync, onAuthChange, signIn, signUp, signInWithGoogle, signOut, getSession, ping };
 })();
