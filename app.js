@@ -67,9 +67,18 @@ const App = (() => {
       }
     });
 
-    const { error: oauthError } = await SupabaseClient.handleOAuthRedirect();
+    const { data: oauthData, error: oauthError } = await SupabaseClient.handleOAuthRedirect();
     if (oauthError) {
       console.error('OAuth redirect error:', oauthError);
+      if (typeof showToast === 'function') {
+        showToast('OAuth error: ' + oauthError.message);
+      }
+    } else if (oauthData?.session?.user) {
+      _userEmail = oauthData.session.user.email || '';
+      window.ProfileModal?.setUser?.(_userEmail);
+      Auth.hide();
+      await reload();
+      return;
     }
 
     const session = await SupabaseClient.getSession();
