@@ -2,6 +2,7 @@
 
 const SupabaseClient = (() => {
   let _client = null;
+  const APP_URL = 'https://ivistt.github.io/totme/';
 
   // ── Адреса вашого CF Worker ───────────────────────────────
   // Замініть на реальний URL після деплою Worker'а
@@ -67,7 +68,10 @@ const SupabaseClient = (() => {
     return await client.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: window.location.origin + window.location.pathname,
+        redirectTo: APP_URL,
+        queryParams: {
+          prompt: 'select_account',
+        },
       },
     });
   }
