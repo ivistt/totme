@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Облік проєктів</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Martian+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══ AUTH SCREEN ═══════════════════════════════════════════════════ -->
+  <div id="auth-screen" class="auth-screen" hidden>
+    <div class="auth-box">
+      <div class="auth-logo">
+        <img src="logo.png" alt="ОБЛІК" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <span class="auth-logo-text" style="display:none">ОБЛІК</span>
+      </div>
+      <div class="auth-title" id="auth-title">Вхід</div>
+
+      <div id="auth-form-body">
+        <div class="auth-fields">
+          <div class="field">
+            <label>Email</label>
+            <input type="email" id="auth-email" placeholder="you@example.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label>Пароль</label>
+            <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+        </div>
+
+        <div class="auth-error" id="auth-error" hidden></div>
+
+        <button class="btn-primary auth-btn" id="auth-btn-submit">Увійти</button>
+
+        <div class="auth-switch">
+          <span id="auth-switch-text">Немає акаунту? </span>
+          <a href="#" id="auth-switch-link">Зареєструватись</a>
+        </div>
+      </div>
+
+      <div class="auth-confirm" id="auth-confirm-msg" hidden>
+        <div class="auth-confirm-icon">✉</div>
+        <div class="auth-confirm-text">
+          Лист підтвердження відправлено на вашу пошту.<br/>
+          Перейдіть за посиланням у листі, потім увійдіть.
+        </div>
+        <button class="btn-ghost" onclick="location.reload()">Назад до входу</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ APP SCREEN ════════════════════════════════════════════════════ -->
+  <div id="app-screen" hidden>
+
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <img src="logo.png" alt="ОБЛІК" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+          <span class="logo-text" style="display:none">ОБЛІК</span>
+        </div>
+        <button class="btn-icon" id="btn-month-prev" title="Попередній місяць">‹</button>
+<span class="header-month" id="header-month"></span>
+<button class="btn-icon" id="btn-month-next" title="Наступний місяць">›</button>
+      </div>
+      <div class="header-right">
+        <span class="user-email" id="user-email"></span>
+        <span class="rate-display">
+          <span class="rate-label">НБУ</span>
+          <span class="rate-value" id="rate-display">—</span>
+          <span class="rate-label">₴/$</span>
+        </span>
+        <button class="btn-icon" id="btn-settings" title="Налаштування">⚙</button>
+        <button class="btn-logout" id="btn-logout" title="Вийти">↩</button>
+        <button class="btn-primary" id="btn-add">+ проєкт</button>
+      </div>
+    </header>
+
+    <!-- MAIN TABLE -->
+    <main class="main">
+      <div class="table-wrap">
+        <table id="projects-table">
+          <thead>
+            <tr>
+              <th class="col-name">Проєкт</th>
+              <th class="col-num">Ставка $</th>
+              <th class="col-num">Годин</th>
+              <th class="col-num">Фікс $</th>
+              <th class="col-num">Разом $</th>
+              <th class="col-num">Разом ₴</th>
+              <th class="col-status">Статус</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody id="projects-body"></tbody>
+          <tfoot>
+            <tr id="totals-row">
+              <td colspan="4" class="totals-label">Разом</td>
+              <td class="col-num totals-val" id="total-usd">—</td>
+              <td class="col-num totals-val" id="total-uah">—</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- SUMMARY CARDS -->
+      <div class="summary-cards" id="summary-cards">
+        <div class="card">
+          <div class="card-label">Всього $</div>
+          <div class="card-val" id="sum-usd">—</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Всього ₴</div>
+          <div class="card-val" id="sum-uah">—</div>
+        </div>
+        <div class="card card-warn">
+          <div class="card-label">Не оплачено $</div>
+          <div class="card-val" id="sum-unpaid">—</div>
+        </div>
+        <div class="card card-ok">
+          <div class="card-label">Оплачено $</div>
+          <div class="card-val" id="sum-paid">—</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- MODAL: PROJECT FORM -->
+    <div class="overlay" id="overlay-project" hidden>
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <div class="modal-title" id="project-modal-title">Новий проєкт</div>
+          <button class="btn-close" data-close="overlay-project">✕</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="edit-id" />
+          <div class="field">
+            <label>Назва проєкту</label>
+            <input type="text" id="field-name" placeholder="FF, Даня..." />
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Ставка $/год</label>
+              <input type="number" id="field-rate" placeholder="20" min="0" step="0.01" />
+            </div>
+            <div class="field">
+              <label>Годин</label>
+              <input type="number" id="field-hours" placeholder="0" min="0" step="0.25" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Фіксована ціна $ <span class="hint">(якщо є — замінює ставку×год)</span></label>
+            <input type="number" id="field-static" placeholder="0" min="0" step="0.01" />
+          </div>
+          <div class="field">
+            <label>Статус оплати</label>
+            <select id="field-paid">
+              <option value="false">Не оплачено</option>
+              <option value="true">Оплачено</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-ghost" data-close="overlay-project">Скасувати</button>
+          <button class="btn-primary" id="btn-save-project">Зберегти</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: DAILY JOURNAL -->
+    <div class="overlay" id="overlay-journal" hidden>
+      <div class="modal modal-lg">
+        <div class="modal-header">
+          <div>
+            <div class="modal-title" id="journal-title">Щоденник: —</div>
+            <div class="modal-sub" id="journal-sub"></div>
+          </div>
+          <div class="modal-header-right">
+            <button class="btn-copy" id="btn-copy-journal">
+              <span class="copy-icon">⎘</span>
+              <span class="copy-text">копіювати</span>
+            </button>
+            <button class="btn-close" data-close="overlay-journal">✕</button>
+          </div>
+        </div>
+        <div class="modal-body" id="journal-body"></div>
+        <div class="modal-footer">
+          <button class="btn-ghost" data-close="overlay-journal">Закрити</button>
+          <button class="btn-primary" id="btn-save-journal">Зберегти</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: SETTINGS -->
+    <div class="overlay" id="overlay-settings" hidden>
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <div class="modal-title">Налаштування</div>
+          <button class="btn-close" data-close="overlay-settings">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="field">
+            <label>Курс НБУ (₴ за $1)</label>
+            <input type="number" id="setting-rate" placeholder="43.5" min="1" step="0.01" />
+          </div>
+
+          <div class="settings-status" id="settings-status"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-ghost" data-close="overlay-settings">Скасувати</button>
+          <button class="btn-primary" id="btn-save-settings">Зберегти</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST -->
+    <div class="toast" id="toast"></div>
+
+  </div><!-- /app-screen -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="supabase.js"></script>
+  <script src="settings.js"></script>
+  <script src="auth.js"></script>
+  <script src="modal.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
