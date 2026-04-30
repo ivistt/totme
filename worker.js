@@ -26,6 +26,9 @@ export default {
     // ── Auth endpoints (/auth/v1/*) ───────────────────────────
     // Проксіюємо Supabase Auth (signIn, signUp, signOut, refresh, getUser…)
     if (url.pathname.startsWith('/auth/v1/')) {
+      if (url.pathname === '/auth/v1/authorize' && request.method === 'GET') {
+        return Response.redirect(env.SUPABASE_URL + url.pathname + url.search, 302)
+      }
       return proxyTo(request, env, url.pathname + url.search)
     }
 

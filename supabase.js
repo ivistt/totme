@@ -91,6 +91,24 @@ const SupabaseClient = (() => {
     return session;
   }
 
+  async function handleOAuthRedirect() {
+    const client = get();
+    if (!client) return { error: { message: 'Worker не налаштовано' } };
+
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    if (!code) return { data: null, error: null };
+
+    const { data, error } = await client.auth.exchangeCodeForSession(code);
+    if (!error) {
+      _currentUserId = data?.session?.user?.id || null;
+      url.searchParams.delete('code');
+      url.searchParams.delete('state');
+      window.history.replaceState({}, document.title, url.toString());
+    }
+    return { data, error };
+  }
+
   async function ping() {
     const client = get();
     if (!client) return { ok: false, error: 'Не налаштовано' };
@@ -108,5 +126,5 @@ const SupabaseClient = (() => {
   // Ініціалізуємо одразу при завантаженні скрипта
   init();
 
-  return { init, get, userId, userIdSync, onAuthChange, signIn, signUp, signInWithGoogle, signOut, getSession, ping };
+  return { init, get, userId, userIdSync, onAuthChange, signIn, signUp, signInWithGoogle, signOut, getSession, handleOAuthRedirect, ping };
 })();

@@ -67,6 +67,11 @@ const App = (() => {
       }
     });
 
+    const { error: oauthError } = await SupabaseClient.handleOAuthRedirect();
+    if (oauthError) {
+      console.error('OAuth redirect error:', oauthError);
+    }
+
     const session = await SupabaseClient.getSession();
     if (session) {
       _userEmail = session.user.email || '';
