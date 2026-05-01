@@ -7,6 +7,7 @@ const Tasks = (() => {
 
   let _tasks = [];
   let _visible = false;
+  let _draftPriority = false;
 
   // ── DB ────────────────────────────────────────────────
   async function loadFromDB() {
@@ -30,7 +31,13 @@ const Tasks = (() => {
 
     const { data, error } = await client
       .from('tasks')
-      .insert({ text: text.trim(), category, done: false, done_at: null })
+      .insert({
+        user_id: uid,
+        text: text.trim(),
+        category,
+        done: false,
+        done_at: null,
+      })
       .select()
       .single();
 
@@ -49,6 +56,20 @@ const Tasks = (() => {
       .eq('id', id);
 
     if (error) { showToast('Помилка: ' + error.message); return false; }
+    return true;
+  }
+
+  async function togglePriorityInDB(id, category) {
+    const client = SupabaseClient.get();
+    const uid    = SupabaseClient.userIdSync();
+    if (!client || !uid) return false;
+
+    const { error } = await client
+      .from('tasks')
+      .update({ category })
+      .eq('id', id);
+
+    if (error) { showToast('Помилка пріоритету: ' + error.message); return false; }
     return true;
   }
 
@@ -116,26 +137,40 @@ const Tasks = (() => {
     }, DELETE_DELAY_MS);
   }
 
-  // ── RENDER ────────────────────────────────────────────
-  function render() {
-    renderSection('priority', _tasks.filter(t => t.category === PRIORITY));
-    renderSection('normal',   _tasks.filter(t => t.category === NORMAL));
+  async function togglePriority(id) {
+    const task = _tasks.find(t => t.id === id);
+    if (!task) return;
+
+    const nextCategory = task.category === PRIORITY ? NORMAL : PRIORITY;
+    const ok = await togglePriorityInDB(id, nextCategory);
+    if (!ok) return;
+
+    task.category = nextCategory;
+    render();
   }
 
-  function renderSection(category, tasks) {
-    const list = document.getElementById(`tasks-list-${category}`);
-    const count = document.getElementById(`tasks-count-${category}`);
-    if (!list) return;
+  // ── RENDER ────────────────────────────────────────────
+  function render() {
+    const sorted = _tasks.slice().sort((a, b) => {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      if ((a.category === PRIORITY) !== (b.category === PRIORITY)) {
+        return a.category === PRIORITY ? -1 : 1;
+      }
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    });
+    renderSection(sorted);
+    updatePriorityBadge();
+    updateDraftPriorityUI();
+  }
 
-    const active = tasks.filter(t => !t.done).length;
-    const total  = tasks.length;
-    count.textContent = active > 0 ? active : '';
-    count.hidden = active === 0;
+  function renderSection(tasks) {
+    const list = document.getElementById('tasks-list-all');
+    if (!list) return;
 
     list.innerHTML = '';
 
     if (tasks.length === 0) {
-      list.innerHTML = `<div class="tasks-empty">Немає задач</div>`;
+      list.innerHTML = `<div class="tasks-empty">Поки порожньо</div>`;
       return;
     }
 
@@ -147,19 +182,55 @@ const Tasks = (() => {
       const timeLeft = task.done && task.done_at
         ? getTimeLeft(task.done_at)
         : null;
+      const isPriority = task.category === PRIORITY;
 
       item.innerHTML = `
-        <span class="task-bullet"></span>
+        <button class="task-item-priority${isPriority ? ' is-priority' : ''}" data-action="priority" data-id="${task.id}" aria-label="Позначити пріоритет" aria-pressed="${isPriority ? 'true' : 'false'}">
+          <i data-lucide="${isPriority ? 'sparkles' : 'circle'}"></i>
+        </button>
         <span class="task-text">${esc(task.text)}</span>
         ${timeLeft ? `<span class="task-timer">${timeLeft}</span>` : ''}
       `;
 
       if (!task.done) {
-        item.addEventListener('click', () => toggleDone(task.id));
+        item.addEventListener('click', e => {
+          const priorityBtn = e.target.closest('[data-action="priority"]');
+          if (priorityBtn) {
+            e.stopPropagation();
+            togglePriority(task.id);
+            return;
+          }
+          toggleDone(task.id);
+        });
+      } else {
+        item.addEventListener('click', e => {
+          const priorityBtn = e.target.closest('[data-action="priority"]');
+          if (priorityBtn) {
+            e.stopPropagation();
+            togglePriority(task.id);
+          }
+        });
       }
 
       list.appendChild(item);
     });
+
+    window.App?.refreshIcons?.();
+  }
+
+  function updatePriorityBadge() {
+    const count = document.getElementById('tasks-count-priority');
+    if (!count) return;
+    const activePriority = _tasks.filter(t => !t.done && t.category === PRIORITY).length;
+    count.textContent = activePriority > 0 ? activePriority : '';
+    count.hidden = activePriority === 0;
+  }
+
+  function updateDraftPriorityUI() {
+    const toggle = document.getElementById('task-priority-toggle');
+    if (!toggle) return;
+    toggle.classList.toggle('is-active', _draftPriority);
+    toggle.setAttribute('aria-pressed', _draftPriority ? 'true' : 'false');
   }
 
   function getTimeLeft(done_at) {
@@ -172,22 +243,45 @@ const Tasks = (() => {
   }
 
   // ── QUICK ADD ─────────────────────────────────────────
-  function wireInput(inputId, btnId, category) {
+  function wireInput(inputId, btnId) {
     const input = document.getElementById(inputId);
     const btn   = document.getElementById(btnId);
-    if (!input || !btn) return;
+    const row   = input?.closest('.task-add-row');
+    if (!input || !btn || !row) return;
+
+    const syncState = () => {
+      const hasValue = input.value.trim().length > 0;
+      row.classList.toggle('has-value', hasValue);
+      btn.disabled = !hasValue;
+    };
 
     const submit = () => {
       const text = input.value.trim();
       if (!text) return;
       input.value = '';
-      addTask(text, category);
+      syncState();
+      addTask(text, _draftPriority ? PRIORITY : NORMAL);
     };
 
     btn.addEventListener('click', submit);
+    input.addEventListener('input', syncState);
+    input.addEventListener('focus', () => row.classList.add('is-focused'));
+    input.addEventListener('blur', () => row.classList.remove('is-focused'));
     input.addEventListener('keydown', e => {
       if (e.key === 'Enter') { e.preventDefault(); submit(); }
     });
+
+    syncState();
+  }
+
+  function wirePriorityToggle() {
+    const toggle = document.getElementById('task-priority-toggle');
+    if (!toggle) return;
+    toggle.addEventListener('click', () => {
+      _draftPriority = !_draftPriority;
+      updateDraftPriorityUI();
+    });
+    updateDraftPriorityUI();
   }
 
   // ── SCREEN TOGGLE ─────────────────────────────────────
@@ -195,8 +289,10 @@ const Tasks = (() => {
     _visible = true;
     document.getElementById('tasks-screen').removeAttribute('hidden');
     document.getElementById('main-screen').setAttribute('hidden', '');
-    document.getElementById('nav-tasks').classList.add('nav-active');
-    document.getElementById('nav-projects').classList.remove('nav-active');
+    const navTasks = document.getElementById('nav-tasks');
+    const navProjects = document.getElementById('nav-projects');
+    if (navTasks) navTasks.classList.add('nav-active');
+    if (navProjects) navProjects.classList.remove('nav-active');
     reload();
   }
 
@@ -204,8 +300,10 @@ const Tasks = (() => {
     _visible = false;
     document.getElementById('tasks-screen').setAttribute('hidden', '');
     document.getElementById('main-screen').removeAttribute('hidden');
-    document.getElementById('nav-tasks').classList.remove('nav-active');
-    document.getElementById('nav-projects').classList.add('nav-active');
+    const navTasks = document.getElementById('nav-tasks');
+    const navProjects = document.getElementById('nav-projects');
+    if (navTasks) navTasks.classList.remove('nav-active');
+    if (navProjects) navProjects.classList.add('nav-active');
   }
 
   function esc(str) {
@@ -218,11 +316,11 @@ const Tasks = (() => {
 
   // ── INIT ──────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
-    wireInput('task-input-priority', 'task-add-priority', PRIORITY);
-    wireInput('task-input-normal',   'task-add-normal',   NORMAL);
+    wireInput('task-input-main', 'task-add-main');
+    wirePriorityToggle();
 
-    document.getElementById('nav-projects').addEventListener('click', hide);
-    document.getElementById('nav-tasks').addEventListener('click', show);
+    document.getElementById('nav-projects')?.addEventListener('click', hide);
+    document.getElementById('nav-tasks')?.addEventListener('click', show);
   });
 
   return { show, hide, reload };

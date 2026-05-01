@@ -434,59 +434,25 @@
 
   <!-- ═══ TASKS SCREEN ══════════════════════════════════════════════════ -->
   <div id="tasks-screen" hidden>
-
-    <!-- TASKS HEADER -->
-    <header class="header">
-      <div class="header-left">
-        <div class="logo">
-          <img src="logo.png" alt="ОБЛІК" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-          <span class="logo-text" style="display:none">ОБЛІК</span>
-        </div>
-        <span class="tasks-screen-title">Задачі</span>
-      </div>
-      <div class="header-right">
-        <button class="avatar-btn" id="btn-profile-tasks" type="button" aria-label="Профіль">
-          <span class="avatar-initial" id="avatar-initial-tasks">?</span>
-        </button>
-      </div>
-    </header>
-
     <main class="tasks-main">
-
-      <!-- PRIORITY -->
       <section class="tasks-section">
         <div class="tasks-section-head">
           <div class="tasks-section-title">
-            <span class="tasks-section-label">Пріоритетні</span>
+            <span class="tasks-section-label">Усі задачі</span>
             <span class="tasks-badge tasks-badge-priority" id="tasks-count-priority" hidden>0</span>
           </div>
         </div>
-        <div class="tasks-list" id="tasks-list-priority"></div>
+        <div class="tasks-list" id="tasks-list-all"></div>
         <div class="task-add-row">
-          <input type="text" class="task-input" id="task-input-priority" placeholder="Додати пріоритетну задачу..." maxlength="200" />
-          <button class="task-add-btn task-add-btn-priority" id="task-add-priority" aria-label="Додати">
+          <input type="text" class="task-input" id="task-input-main" placeholder="Нова задача..." maxlength="200" />
+          <button class="task-priority-toggle" id="task-priority-toggle" type="button" aria-label="Позначити як пріоритетну" aria-pressed="false">
+            <i data-lucide="sparkles"></i>
+          </button>
+          <button class="task-add-btn task-add-btn-priority" id="task-add-main" aria-label="Додати">
             <i data-lucide="plus"></i>
           </button>
         </div>
       </section>
-
-      <!-- NORMAL -->
-      <section class="tasks-section">
-        <div class="tasks-section-head">
-          <div class="tasks-section-title">
-            <span class="tasks-section-label">Звичайні</span>
-            <span class="tasks-badge" id="tasks-count-normal" hidden>0</span>
-          </div>
-        </div>
-        <div class="tasks-list" id="tasks-list-normal"></div>
-        <div class="task-add-row">
-          <input type="text" class="task-input" id="task-input-normal" placeholder="Додати звичайну задачу..." maxlength="200" />
-          <button class="task-add-btn" id="task-add-normal" aria-label="Додати">
-            <i data-lucide="plus"></i>
-          </button>
-        </div>
-      </section>
-
     </main>
   </div>
 
